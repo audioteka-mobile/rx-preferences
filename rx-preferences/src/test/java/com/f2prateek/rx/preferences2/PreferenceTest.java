@@ -10,6 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,9 +62,9 @@ public class PreferenceTest {
     assertThat(rxPreferences.getLong("foo5", 1L).defaultValue()).isEqualTo(1L);
     assertThat(rxPreferences.getString("foo6", "bar").defaultValue()).isEqualTo("bar");
     assertThat(rxPreferences.getStringSet("foo7", singleton("bar")).defaultValue()) //
-        .isEqualTo(singleton("bar"));
+            .isEqualTo(singleton("bar"));
     assertThat(rxPreferences.getObject("foo8", new Point(1, 2), pointConverter).defaultValue()) //
-        .isEqualTo(new Point(1, 2));
+            .isEqualTo(new Point(1, 2));
   }
 
   @Test public void getWithNoValueReturnsDefaultValue() {
@@ -74,9 +75,9 @@ public class PreferenceTest {
     assertThat(rxPreferences.getLong("foo5", 1L).get()).isEqualTo(1L);
     assertThat(rxPreferences.getString("foo6", "bar").get()).isEqualTo("bar");
     assertThat(rxPreferences.getStringSet("foo7", singleton("bar")).get()) //
-        .isEqualTo(singleton("bar"));
+            .isEqualTo(singleton("bar"));
     assertThat(rxPreferences.getObject("foo8", new Point(1, 2), pointConverter).get()) //
-        .isEqualTo(new Point(1, 2));
+            .isEqualTo(new Point(1, 2));
   }
 
   @Test public void getWithStoredValue() {
@@ -96,7 +97,7 @@ public class PreferenceTest {
     assertThat(rxPreferences.getStringSet("foo7").get()).isEqualTo(singleton("bar"));
     preferences.edit().putString("foo8", "1,2").commit();
     assertThat(rxPreferences.getObject("foo8", new Point(2, 3), pointConverter).get())
-        .isEqualTo(new Point(1, 2));
+            .isEqualTo(new Point(1, 2));
   }
 
   @Test public void set() {
@@ -202,17 +203,17 @@ public class PreferenceTest {
 
   @Test public void converterMayNotReturnNull() {
     Preference<Point> preference =
-        rxPreferences.getObject("foo", new Point(0, 0), new Preference.Converter<Point>() {
-          @SuppressWarnings("ConstantConditions")
-          @NonNull @Override public Point deserialize(@NonNull String serialized) {
-            return null;
-          }
+            rxPreferences.getObject("foo", new Point(0, 0), new Preference.Converter<Point>() {
+              @SuppressWarnings("ConstantConditions")
+              @NonNull @Override public Point deserialize(@NonNull String serialized) {
+                return null;
+              }
 
-          @SuppressWarnings("ConstantConditions")
-          @NonNull @Override public String serialize(@NonNull Point value) {
-            return null;
-          }
-        });
+              @SuppressWarnings("ConstantConditions")
+              @NonNull @Override public String serialize(@NonNull Point value) {
+                return null;
+              }
+            });
     preferences.edit().putString("foo", "1,2").apply();
     try {
       preference.get();
@@ -225,7 +226,7 @@ public class PreferenceTest {
       fail("Disallow Converter methods from returning null.");
     } catch (NullPointerException expected) {
       assertThat(expected).hasMessage(
-          "Serialized string must not be null from value: Point{x=1, y=2}");
+              "Serialized string must not be null from value: Point{x=1, y=2}");
     }
   }
 
@@ -263,6 +264,21 @@ public class PreferenceTest {
     observer.assertValue("baz");
 
     preferences.edit().remove("foo").commit();
+    observer.assertValue("bar");
+  }
+
+  @Ignore("Robolectric needs to be updated to support API 30")
+  @Test public void asObservableWhenBackingPrefsCleared() {
+    Preference<String> preference = rxPreferences.getString("foo", "bar");
+
+    RecordingObserver<String> observer = observerRule.create();
+    preference.asObservable().subscribe(observer);
+    observer.assertValue("bar");
+
+    preferences.edit().putString("foo", "baz").commit();
+    observer.assertValue("baz");
+
+    preferences.edit().clear().commit();
     observer.assertValue("bar");
   }
 
@@ -317,7 +333,7 @@ public class PreferenceTest {
   @Test public void legacyNullObject() {
     nullValue("obj");
     assertThat(rxPreferences.getObject("obj", new Point(10, 11), pointConverter).get())
-        .isEqualTo(new Point(10, 11));
+            .isEqualTo(new Point(10, 11));
   }
 
   @Test public void legacyNullSet() {
@@ -330,7 +346,7 @@ public class PreferenceTest {
 
   private void nullValue(String key) {
     preferences.edit()
-        .putString(key, null)
-        .commit();
+            .putString(key, null)
+            .commit();
   }
 }

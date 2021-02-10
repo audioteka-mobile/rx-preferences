@@ -18,7 +18,7 @@ final class RealPreference<T> implements Preference<T> {
      * if the preference is unset, or was set to {@code null}.
      */
     @NonNull T get(@NonNull String key, @NonNull SharedPreferences preferences,
-        @NonNull T defaultValue);
+                   @NonNull T defaultValue);
 
     /**
      * Store non-null {@code value} for {@code key} in {@code editor}.
@@ -35,24 +35,28 @@ final class RealPreference<T> implements Preference<T> {
   private final Adapter<T> adapter;
   private final Observable<T> values;
 
-  RealPreference(SharedPreferences preferences, final String key, T defaultValue,
-      Adapter<T> adapter, Observable<String> keyChanges) {
+  RealPreference(SharedPreferences preferences, final String key, final T defaultValue,
+                 Adapter<T> adapter, Observable<String> keyChanges) {
     this.preferences = preferences;
     this.key = key;
     this.defaultValue = defaultValue;
     this.adapter = adapter;
     this.values = keyChanges //
-        .filter(new Predicate<String>() {
-          @Override public boolean test(String changedKey) {
-            return key.equals(changedKey);
-          }
-        }) //
-        .startWith("<init>") // Dummy value to trigger initial load.
-        .map(new Function<String, T>() {
-          @Override public T apply(String s) {
-            return get();
-          }
-        });
+            .filter(new Predicate<String>() {
+              @Override public boolean test(String changedKey) {
+                return key.equals(changedKey);
+              }
+            }) //
+            .startWith("<init>") // Dummy value to trigger initial load.
+            .map(new Function<String, T>() {
+              @Override public T apply(String s) {
+                if(s.equals(RxSharedPreferences.NULL_KEY_EMISSION)) {
+                  return defaultValue;
+                } else {
+                  return get();
+                }
+              }
+            });
   }
 
   @Override @NonNull public String key() {
@@ -94,4 +98,3 @@ final class RealPreference<T> implements Preference<T> {
     };
   }
 }
-

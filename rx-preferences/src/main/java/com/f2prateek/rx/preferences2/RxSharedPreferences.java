@@ -26,6 +26,8 @@ public final class RxSharedPreferences {
   private static final Long DEFAULT_LONG = 0L;
   private static final String DEFAULT_STRING = "";
 
+  static final String NULL_KEY_EMISSION = "null_key_emission";
+
   /** Create an instance of {@link RxSharedPreferences} for {@code preferences}. */
   @CheckResult @NonNull
   public static RxSharedPreferences create(@NonNull SharedPreferences preferences) {
@@ -43,7 +45,11 @@ public final class RxSharedPreferences {
         final OnSharedPreferenceChangeListener listener = new OnSharedPreferenceChangeListener() {
           @Override
           public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
-            emitter.onNext(key);
+            if(key == null) {
+              emitter.onNext(NULL_KEY_EMISSION);
+            } else {
+              emitter.onNext(key);
+            }
           }
         };
 
@@ -75,7 +81,7 @@ public final class RxSharedPreferences {
   /** Create an enum preference for {@code key} with a default of {@code defaultValue}. */
   @CheckResult @NonNull
   public <T extends Enum<T>> Preference<T> getEnum(@NonNull String key, @NonNull T defaultValue,
-      @NonNull Class<T> enumClass) {
+                                                   @NonNull Class<T> enumClass) {
     checkNotNull(key, "key == null");
     checkNotNull(defaultValue, "defaultValue == null");
     checkNotNull(enumClass, "enumClass == null");
@@ -128,12 +134,12 @@ public final class RxSharedPreferences {
    * Create a preference for type {@code T} for {@code key} with a default of {@code defaultValue}.
    */
   @CheckResult @NonNull public <T> Preference<T> getObject(@NonNull String key,
-      @NonNull T defaultValue, @NonNull Preference.Converter<T> converter) {
+                                                           @NonNull T defaultValue, @NonNull Preference.Converter<T> converter) {
     checkNotNull(key, "key == null");
     checkNotNull(defaultValue, "defaultValue == null");
     checkNotNull(converter, "converter == null");
     return new RealPreference<>(preferences, key, defaultValue,
-        new ConverterAdapter<>(converter), keyChanges);
+            new ConverterAdapter<>(converter), keyChanges);
   }
 
   /** Create a string preference for {@code key}. Default is {@code ""}. */
@@ -164,12 +170,12 @@ public final class RxSharedPreferences {
   @RequiresApi(HONEYCOMB)
   @CheckResult @NonNull
   public Preference<Set<String>> getStringSet(@NonNull String key,
-      @NonNull Set<String> defaultValue) {
+                                              @NonNull Set<String> defaultValue) {
     checkNotNull(key, "key == null");
     checkNotNull(defaultValue, "defaultValue == null");
     return new RealPreference<>(preferences, key, defaultValue, StringSetAdapter.INSTANCE, keyChanges);
   }
-  
+
   public void clear() {
     preferences.edit().clear().apply();
   }
